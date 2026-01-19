@@ -1,0 +1,5 @@
+{
+  "name": "EstateVision AI",
+  "description": "An AI-powered real estate inventory dashboard that automatically maps plot layouts from images and integrates with inventory data.",
+  "requestFramePermissions": []
+}
