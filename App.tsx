@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { DashboardData, FileUploadState, ViewState, EnrichedPlot, PlotStatus } from './types';
+import { DashboardData, FileUploadState, ViewState, EnrichedPlot, PlotStatus, InventoryItem } from './types';
 import { analyzeLayoutImage } from './services/geminiService';
-import { parseCSV, fileToBase64 } from './utils/csvParser';
+import { parseCSV, fileToBase64, exportToCSV } from './utils/csvParser';
 import { UploadWizard } from './components/UploadWizard';
 import { Dashboard } from './components/Dashboard';
 import { Directory } from './components/Directory';
-import { FolderOpen, Save, RotateCcw, Layout, ArrowLeft } from 'lucide-react';
+import { FolderOpen, Save, RotateCcw, Layout, ArrowLeft, Download } from 'lucide-react';
 
 const STORAGE_KEY = 'estatevision_dashboards';
 
@@ -113,6 +113,30 @@ export default function App() {
     alert("Dashboard saved successfully!");
   };
 
+  const handleExport = () => {
+    if (!currentDashboard) return;
+
+    // Collect all inventory items. 
+    // If a plot has no inventory object (detected by AI but not in orig CSV and untouched), 
+    // we create a default entry so it's included in the dump.
+    const exportData: InventoryItem[] = currentDashboard.plots.map(plot => {
+      if (plot.inventory) {
+        return plot.inventory;
+      } else {
+        return {
+          plotId: plot.id,
+          status: PlotStatus.AVAILABLE,
+          price: undefined,
+          sqFt: undefined,
+          customerName: undefined
+        };
+      }
+    });
+
+    const filename = `${currentDashboard.name.replace(/\s+/g, '_')}_Inventory.csv`;
+    exportToCSV(exportData, filename);
+  };
+
   const handleReset = () => {
     if (window.confirm("Are you sure you want to reset? Unsaved changes will be lost.")) {
       setCurrentDashboard(null);
@@ -152,6 +176,15 @@ export default function App() {
                   <FolderOpen size={16} /> Directory
                 </button>
                 <div className="h-6 w-px bg-slate-200 mx-1"></div>
+                
+                <button 
+                  onClick={handleExport}
+                  className="flex items-center gap-2 px-3 py-1.5 text-slate-600 hover:bg-slate-100 rounded-md text-sm font-medium transition-colors"
+                  title="Export current inventory status to CSV"
+                >
+                  <Download size={16} /> Export
+                </button>
+
                 <button 
                   onClick={handleReset}
                   className="flex items-center gap-2 px-3 py-1.5 text-slate-600 hover:bg-slate-100 rounded-md text-sm font-medium transition-colors"

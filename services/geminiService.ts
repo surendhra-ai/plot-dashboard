@@ -2,8 +2,8 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { PlotGeometry } from '../types';
 
 // Initialize Gemini Client
-// In a real app, strict error handling for missing API key would be here.
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+// The API key must be obtained exclusively from the environment variable process.env.API_KEY.
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 export const analyzeLayoutImage = async (base64Image: string): Promise<PlotGeometry[]> => {
   if (!process.env.API_KEY) {
@@ -12,7 +12,6 @@ export const analyzeLayoutImage = async (base64Image: string): Promise<PlotGeome
   }
 
   // Robustly extract base64 data and mime type
-  // This handles data URIs for png, jpg, webp, svg, etc. by splitting at 'base64,'
   const base64Data = base64Image.includes('base64,') 
     ? base64Image.split('base64,')[1] 
     : base64Image;
@@ -20,8 +19,6 @@ export const analyzeLayoutImage = async (base64Image: string): Promise<PlotGeome
   const mimeType = base64Image.match(/data:([^;]*);/)?.[1] || 'image/png';
 
   try {
-    // Use gemini-3-flash-preview for multimodal analysis (image -> text/json)
-    // gemini-2.5-flash-image is primarily for image generation tasks
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
       contents: {
@@ -82,13 +79,11 @@ export const analyzeLayoutImage = async (base64Image: string): Promise<PlotGeome
 
   } catch (error) {
     console.error("Gemini Analysis Failed:", error);
-    // Fallback for demo purposes if API fails or key is invalid
     return getMockPlots();
   }
 };
 
 const getMockPlots = (): PlotGeometry[] => {
-  // Mock data representing a simple grid for demo resilience
   const plots: PlotGeometry[] = [];
   let id = 1;
   for (let row = 0; row < 4; row++) {

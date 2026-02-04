@@ -65,3 +65,43 @@ export const fileToBase64 = (file: File): Promise<string> => {
     reader.readAsDataURL(file);
   });
 };
+
+export const exportToCSV = (data: InventoryItem[], filename: string) => {
+  if (!data.length) {
+    alert("No data to export");
+    return;
+  }
+
+  // Define headers for the export
+  const headers = ['Plot ID', 'Status', 'Price', 'Size (SqFt)', 'Customer Name'];
+  
+  // Convert data items to CSV rows
+  const csvRows = data.map(item => {
+    // Escape quotes in strings if necessary
+    const escape = (val: string | undefined) => val ? `"${val.replace(/"/g, '""')}"` : '';
+    
+    return [
+      escape(item.plotId),
+      escape(item.status),
+      item.price || '',
+      item.sqFt || '',
+      escape(item.customerName)
+    ].join(',');
+  });
+
+  // Combine headers and rows
+  const csvContent = [headers.join(','), ...csvRows].join('\n');
+
+  // Create Blob and download link
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  if (link.download !== undefined) {
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+};
