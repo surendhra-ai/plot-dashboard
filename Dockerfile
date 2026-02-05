@@ -10,5 +10,5 @@ RUN npx vite build
 # Production stage
 FROM caddy:alpine
 COPY --from=build /app/dist /usr/share/caddy
-EXPOSE 80
-CMD ["caddy", "file-server", "--root", "/usr/share/caddy", "--listen", ":80"]
+EXPOSE 3206
+CMD ["caddy", "file-server", "--root", "/usr/share/caddy", "--listen", ":3206"]
