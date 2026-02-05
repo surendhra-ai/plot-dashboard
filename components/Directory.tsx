@@ -1,15 +1,16 @@
 import React from 'react';
 import { DashboardData } from '../types';
-import { Map, Calendar, ArrowRight, Trash2 } from 'lucide-react';
+import { Map, Calendar, ArrowRight, Trash2, Download } from 'lucide-react';
 
 interface DirectoryProps {
   dashboards: DashboardData[];
   onSelect: (id: string) => void;
   onDelete: (id: string) => void;
+  onExport: (id: string) => void;
   onCreateNew: () => void;
 }
 
-export const Directory: React.FC<DirectoryProps> = ({ dashboards, onSelect, onDelete, onCreateNew }) => {
+export const Directory: React.FC<DirectoryProps> = ({ dashboards, onSelect, onDelete, onExport, onCreateNew }) => {
   return (
     <div className="p-8 max-w-5xl mx-auto">
       <div className="flex justify-between items-center mb-8">
@@ -66,8 +67,16 @@ export const Directory: React.FC<DirectoryProps> = ({ dashboards, onSelect, onDe
                     Open Dashboard <ArrowRight size={14} />
                   </button>
                   <button 
+                    onClick={(e) => { e.stopPropagation(); onExport(dash.id); }}
+                    className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                    title="Export Inventory CSV"
+                  >
+                    <Download size={16} />
+                  </button>
+                  <button 
                     onClick={(e) => { e.stopPropagation(); onDelete(dash.id); }}
                     className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                    title="Delete Dashboard"
                   >
                     <Trash2 size={16} />
                   </button>

@@ -113,13 +113,9 @@ export default function App() {
     alert("Dashboard saved successfully!");
   };
 
-  const handleExport = () => {
-    if (!currentDashboard) return;
-
-    // Collect all inventory items. 
-    // If a plot has no inventory object (detected by AI but not in orig CSV and untouched), 
-    // we create a default entry so it's included in the dump.
-    const exportData: InventoryItem[] = currentDashboard.plots.map(plot => {
+  // Helper to generate export data from a dashboard object
+  const generateExportData = (dashboard: DashboardData): InventoryItem[] => {
+    return dashboard.plots.map(plot => {
       if (plot.inventory) {
         return plot.inventory;
       } else {
@@ -132,8 +128,22 @@ export default function App() {
         };
       }
     });
+  };
 
+  // Export from the active dashboard view
+  const handleExportCurrent = () => {
+    if (!currentDashboard) return;
+    const exportData = generateExportData(currentDashboard);
     const filename = `${currentDashboard.name.replace(/\s+/g, '_')}_Inventory.csv`;
+    exportToCSV(exportData, filename);
+  };
+
+  // Export from the directory view
+  const handleExportFromDirectory = (id: string) => {
+    const dash = dashboards.find(d => d.id === id);
+    if (!dash) return;
+    const exportData = generateExportData(dash);
+    const filename = `${dash.name.replace(/\s+/g, '_')}_Inventory.csv`;
     exportToCSV(exportData, filename);
   };
 
@@ -178,7 +188,7 @@ export default function App() {
                 <div className="h-6 w-px bg-slate-200 mx-1"></div>
                 
                 <button 
-                  onClick={handleExport}
+                  onClick={handleExportCurrent}
                   className="flex items-center gap-2 px-3 py-1.5 text-slate-600 hover:bg-slate-100 rounded-md text-sm font-medium transition-colors"
                   title="Export current inventory status to CSV"
                 >
@@ -225,6 +235,7 @@ export default function App() {
               }
             }}
             onDelete={handleDelete}
+            onExport={handleExportFromDirectory}
             onCreateNew={() => setView('WIZARD')}
           />
         )}
