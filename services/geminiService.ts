@@ -1,48 +1,67 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import { PlotGeometry } from '../types';
+import { PlotGeometry } from "../types";
 
-// Initialize Gemini Client
-// The API key must be obtained exclusively from the environment variable process.env.API_KEY.
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+/**
+ * IMPORTANT:
+ * In Vite, environment variables must start with VITE_
+ * and accessed using import.meta.env
+ */
+const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 
-export const analyzeLayoutImage = async (base64Image: string): Promise<PlotGeometry[]> => {
-  if (!process.env.API_KEY) {
-    console.warn("No API Key found. Returning mock data for demonstration.");
-    return getMockPlots(); 
+// Lazy initialization to avoid crash if key missing
+const ai = API_KEY
+  ? new GoogleGenAI({ apiKey: API_KEY })
+  : null;
+
+/**
+ * Analyze a real estate layout image using Gemini Vision
+ */
+export const analyzeLayoutImage = async (
+  base64Image: string
+): Promise<PlotGeometry[]> => {
+  // If API key not configured, return mock data safely
+  if (!API_KEY || !ai) {
+    console.warn(
+      "VITE_GEMINI_API_KEY not found. Returning mock plot data."
+    );
+    return getMockPlots();
   }
 
-  // Robustly extract base64 data and mime type
-  const base64Data = base64Image.includes('base64,') 
-    ? base64Image.split('base64,')[1] 
+  // Extract base64 data & mime type safely
+  const base64Data = base64Image.includes("base64,")
+    ? base64Image.split("base64,")[1]
     : base64Image;
-    
-  const mimeType = base64Image.match(/data:([^;]*);/)?.[1] || 'image/png';
+
+  const mimeType =
+    base64Image.match(/data:([^;]*);/)?.[1] || "image/png";
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
+      model: "gemini-3-flash-preview",
       contents: {
         parts: [
           {
             inlineData: {
-              mimeType: mimeType,
-              data: base64Data
-            }
+              mimeType,
+              data: base64Data,
+            },
           },
           {
-            text: `You are an expert real estate layout analyzer.
-            
-            Task: detailed extraction of all plots from the provided real estate layout image.
-            
-            Instructions:
-            1. Identify every single plot, lot, or unit that has a number or label (e.g., "1", "101", "A-5", "Plot 4").
-            2. For each plot, determine its PRECISE bounding box. The box should encompass the entire boundary of the plot, not just the text label.
-            3. Return the coordinates normalized to a 0-1000 scale [ymin, xmin, ymax, xmax].
-            4. Be extremely thorough. If there are 50 plots, return 50 entries.
-            
-            Output strictly valid JSON matching the schema.`
-          }
-        ]
+            text: `
+You are an expert real estate layout analyzer.
+
+Task:
+Extract all plots from the provided real estate layout image.
+
+Instructions:
+1. Identify every plot, lot, or labeled unit.
+2. Determine precise bounding boxes.
+3. Return normalized coordinates [ymin, xmin, ymax, xmax] (0–1000 scale).
+4. Be extremely thorough.
+5. Return strictly valid JSON matching the schema.
+`,
+          },
+        ],
       },
       config: {
         responseMimeType: "application/json",
@@ -54,38 +73,47 @@ export const analyzeLayoutImage = async (base64Image: string): Promise<PlotGeome
               items: {
                 type: Type.OBJECT,
                 properties: {
-                  id: { type: Type.STRING, description: "The distinct plot number or label visible on the image" },
-                  box_2d: { 
-                    type: Type.ARRAY, 
-                    items: { type: Type.NUMBER }, 
-                    description: "ymin, xmin, ymax, xmax (0-1000 scale)" 
-                  }
+                  id: {
+                    type: Type.STRING,
+                    description:
+                      "The distinct plot number or label visible",
+                  },
+                  box_2d: {
+                    type: Type.ARRAY,
+                    items: { type: Type.NUMBER },
+                    description:
+                      "ymin, xmin, ymax, xmax (0-1000 scale)",
+                  },
                 },
-                required: ["id", "box_2d"]
-              }
-            }
-          }
-        }
-      }
+                required: ["id", "box_2d"],
+              },
+            },
+          },
+        },
+      },
     });
 
     const jsonText = response.text || "{}";
-    const result = JSON.parse(jsonText);
-    
-    if (result.plots && Array.isArray(result.plots)) {
-      return result.plots;
-    }
-    return [];
+    const parsed = JSON.parse(jsonText);
 
+    if (parsed?.plots && Array.isArray(parsed.plots)) {
+      return parsed.plots;
+    }
+
+    return [];
   } catch (error) {
-    console.error("Gemini Analysis Failed:", error);
+    console.error("Gemini analysis failed:", error);
     return getMockPlots();
   }
 };
 
+/**
+ * Mock fallback data
+ */
 const getMockPlots = (): PlotGeometry[] => {
   const plots: PlotGeometry[] = [];
   let id = 1;
+
   for (let row = 0; row < 4; row++) {
     for (let col = 0; col < 5; col++) {
       plots.push({
@@ -94,10 +122,11 @@ const getMockPlots = (): PlotGeometry[] => {
           100 + row * 200, // ymin
           50 + col * 180,  // xmin
           250 + row * 200, // ymax
-          200 + col * 180  // xmax
-        ]
+          200 + col * 180, // xmax
+        ],
       });
     }
   }
+
   return plots;
-}
+};
