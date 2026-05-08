@@ -1,6 +1,6 @@
-import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { DashboardData, PlotStatus, EnrichedPlot } from '../types';
-import { User, DollarSign, Maximize2, Grid, Tag, ZoomIn, ZoomOut, RotateCcw, Move, MousePointerClick, Edit2 } from 'lucide-react';
+import { User, DollarSign, Maximize2, Grid, ZoomIn, ZoomOut, RotateCcw, MousePointerClick, Edit2 } from 'lucide-react';
 
 interface DashboardProps {
   data: DashboardData;

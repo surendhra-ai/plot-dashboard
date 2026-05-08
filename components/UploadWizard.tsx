@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { UploadCloud, FileSpreadsheet, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { FileUploadState } from '../types';
 
@@ -9,35 +9,8 @@ interface UploadWizardProps {
 
 export const UploadWizard: React.FC<UploadWizardProps> = ({ onProcess, isProcessing }) => {
   const [files, setFiles] = useState<FileUploadState>({ imageFile: null, inventoryFile: null });
-  const [dragActive, setDragActive] = useState(false);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const csvInputRef = useRef<HTMLInputElement>(null);
-
-  const handleDrag = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true);
-    } else if (e.type === "dragleave") {
-      setDragActive(false);
-    }
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
-    
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      // Simple heuristic: if it's an image, set image; if csv/xlsx, set inventory
-      const file = e.dataTransfer.files[0];
-      if (file.type.startsWith('image/')) {
-        setFiles(prev => ({ ...prev, imageFile: file }));
-      } else if (file.name.endsWith('.csv') || file.name.endsWith('.xlsx')) {
-        setFiles(prev => ({ ...prev, inventoryFile: file }));
-      }
-    }
-  };
 
   const isReady = files.imageFile && files.inventoryFile;
 

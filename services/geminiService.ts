@@ -6,7 +6,7 @@ import { PlotGeometry } from "../types";
  * In Vite, environment variables must start with VITE_
  * and accessed using import.meta.env
  */
-const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+const API_KEY = process.env.GEMINI_API_KEY;
 
 // Lazy initialization to avoid crash if key missing
 const ai = API_KEY
@@ -22,7 +22,7 @@ export const analyzeLayoutImage = async (
   // If API key not configured, return mock data safely
   if (!API_KEY || !ai) {
     console.warn(
-      "VITE_GEMINI_API_KEY not found. Returning mock plot data."
+      "GEMINI_API_KEY not found. Returning mock plot data."
     );
     return getMockPlots();
   }

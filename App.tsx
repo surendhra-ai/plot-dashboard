@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { DashboardData, FileUploadState, ViewState, EnrichedPlot, PlotStatus, InventoryItem } from './types';
 import { analyzeLayoutImage } from './services/geminiService';
 import { parseCSV, fileToBase64, exportToCSV } from './utils/csvParser';
