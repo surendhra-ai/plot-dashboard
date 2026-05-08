@@ -21,7 +21,9 @@ export interface InventoryItem {
 }
 
 // Merged data for the dashboard
-export interface EnrichedPlot extends PlotGeometry {
+export interface EnrichedPlot {
+  id: string;
+  box_2d?: [number, number, number, number];
   inventory?: InventoryItem;
 }
 

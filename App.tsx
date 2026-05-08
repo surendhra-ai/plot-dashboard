@@ -53,6 +53,17 @@ export default function App() {
         };
       });
 
+      // Add inventory items that weren't found on the map
+      inventoryData.forEach(inv => {
+        const found = enrichedPlots.find(p => p.id.toString().toLowerCase() === inv.plotId.toString().toLowerCase());
+        if (!found) {
+          enrichedPlots.push({
+            id: inv.plotId,
+            inventory: inv
+          });
+        }
+      });
+
       // 5. Create Dashboard Object
       const newDashboard: DashboardData = {
         id: crypto.randomUUID(),
@@ -65,9 +76,13 @@ export default function App() {
       setCurrentDashboard(newDashboard);
       setView('DASHBOARD');
 
-    } catch (error) {
+    } catch (error: any) {
       console.error("Processing error:", error);
-      alert("An error occurred while processing the files. Please try again.");
+      if (error?.message === "GEMINI_API_KEY_MISSING") {
+        alert("Configuration Error: GEMINI_API_KEY is missing.\n\nSince this app connects to the Gemini API directly from the browser, you must provide the GEMINI_API_KEY as a Build Environment Variable when deploying (e.g., in Coolify's build settings).");
+      } else {
+        alert(`An error occurred while processing the files: ${error?.message || 'Unknown error'}`);
+      }
     } finally {
       setIsProcessing(false);
     }

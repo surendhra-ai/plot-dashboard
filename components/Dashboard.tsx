@@ -235,6 +235,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ data, onStatusChange }) =>
                 shapeRendering="geometricPrecision"
               >
                 {filteredPlots.map((plot) => {
+                  if (!plot.box_2d) return null;
                   const [ymin, xmin, ymax, xmax] = plot.box_2d;
                   const width = xmax - xmin;
                   const height = ymax - ymin;
@@ -375,18 +376,34 @@ export const Dashboard: React.FC<DashboardProps> = ({ data, onStatusChange }) =>
 
         {/* Detail Card - Sticky if needed, or static */}
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 flex-1 flex flex-col overflow-hidden">
-          <div className="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
+          <div className="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center flex-wrap gap-3">
             <h3 className="font-semibold text-slate-700">
                {selectedPlot ? 'Selected Plot' : (hoveredPlot ? 'Previewing Plot' : 'Plot Details')}
             </h3>
-            {selectedPlot && (
-              <button 
-                onClick={() => setSelectedPlotId(null)}
-                className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+            
+            <div className="flex items-center gap-2">
+              <select 
+                className="text-sm p-1 border border-slate-200 rounded-md bg-white text-slate-600 outline-none"
+                value={selectedPlotId || ""}
+                onChange={(e) => setSelectedPlotId(e.target.value)}
               >
-                Clear Selection
-              </button>
-            )}
+                <option value="">Select a plot...</option>
+                {data.plots.map(p => (
+                  <option key={p.id} value={p.id}>
+                    {p.id} {!p.box_2d ? '(Unmapped)' : ''}
+                  </option>
+                ))}
+              </select>
+              
+              {selectedPlot && (
+                <button 
+                  onClick={() => setSelectedPlotId(null)}
+                  className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
           </div>
           <div className="p-6 flex-1 flex flex-col justify-center">
             {displayPlot ? (

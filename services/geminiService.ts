@@ -19,12 +19,9 @@ const ai = API_KEY
 export const analyzeLayoutImage = async (
   base64Image: string
 ): Promise<PlotGeometry[]> => {
-  // If API key not configured, return mock data safely
+  // If API key not configured, throw a specific error
   if (!API_KEY || !ai) {
-    console.warn(
-      "GEMINI_API_KEY not found. Returning mock plot data."
-    );
-    return getMockPlots();
+    throw new Error("GEMINI_API_KEY_MISSING");
   }
 
   // Extract base64 data & mime type safely
@@ -103,30 +100,6 @@ Instructions:
     return [];
   } catch (error) {
     console.error("Gemini analysis failed:", error);
-    return getMockPlots();
+    throw error;
   }
-};
-
-/**
- * Mock fallback data
- */
-const getMockPlots = (): PlotGeometry[] => {
-  const plots: PlotGeometry[] = [];
-  let id = 1;
-
-  for (let row = 0; row < 4; row++) {
-    for (let col = 0; col < 5; col++) {
-      plots.push({
-        id: `P-${id++}`,
-        box_2d: [
-          100 + row * 200, // ymin
-          50 + col * 180,  // xmin
-          250 + row * 200, // ymax
-          200 + col * 180, // xmax
-        ],
-      });
-    }
-  }
-
-  return plots;
 };
